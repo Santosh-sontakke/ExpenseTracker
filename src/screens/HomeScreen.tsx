@@ -7,7 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import TransactionCard from '../components/TransactionCard';
 import { RootState } from '../redux/store';
 import { appRoutes } from '../utils/routes/route';
-import { Transaction, transactionType } from '../utils/types/types';
+import { Transaction } from '../utils/types/types';
+import { transactionType } from '../constants/constant';
 
 // Define the type for the navigation stack
 type RootStackParamList = {

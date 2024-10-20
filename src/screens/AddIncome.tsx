@@ -5,9 +5,11 @@ import { useDispatch } from 'react-redux';
 import { v5 as uuidv5 } from 'uuid';
 import { useNavigation } from '@react-navigation/native';
 import { addTransaction } from '../redux/slices/transactionSlice';
-import { MY_NAMESPACE } from '../constants/constant';
+import { firebaseCollection, MY_NAMESPACE } from '../constants/constant';
 import { DatePickerModal } from 'react-native-paper-dates';
 import { appRoutes } from '../utils/routes/route';
+import firestore from '@react-native-firebase/firestore';
+import { Transaction } from '../utils/types/types';
 
 
 const AddIncome = () => {
@@ -27,20 +29,23 @@ const AddIncome = () => {
     )
   })
 
-  const handleAddIncome = () => {
+  const handleAddIncome = async () => {
     if (amount === '' || isNaN(Number(amount))) {
       setError(true);
       return;
     }
-
-    // Dispatch the addTransaction action with the new income details
-    dispatch(addTransaction({
+    const transactionData: Transaction =
+    {
       id: uuidv5(new Date().getTime().toString(), MY_NAMESPACE),
       amount: parseFloat(amount),
       category: category as any,
       date: date.toLocaleDateString('en-GB'), // Use toLocaleDateString with 'en-GB' for DD/MM/YYYY
       type: 'income',
-    }));
+    }
+    await firestore().collection(firebaseCollection.TXN).add(transactionData);
+
+    // Dispatch the addTransaction action with the new income details
+    dispatch(addTransaction(transactionData));
 
     // Reset form and navigate back to HomeScreen
     setAmount('');

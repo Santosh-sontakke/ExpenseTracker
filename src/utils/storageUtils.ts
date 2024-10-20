@@ -1,10 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { database } from './firebaseConfig';
+import { getDatabase, onValue, ref, set } from 'firebase/database';
+import { Transaction } from './types/types';
+import firestore from '@react-native-firebase/firestore';
+import { firebaseCollection, sharedPrefrence } from '../constants/constant';
 // Save transactions to AsyncStorage
 export const saveTransactionsToStorage = async (transactions: any) => {
   try {
     const jsonValue = JSON.stringify(transactions);
-    await AsyncStorage.setItem('transactions', jsonValue);
+    await AsyncStorage.setItem(sharedPrefrence.TXN ,jsonValue);
   } catch (e) {
     console.error('Error saving transactions to AsyncStorage', e);
   }
@@ -13,7 +17,7 @@ export const saveTransactionsToStorage = async (transactions: any) => {
 // Load transactions from AsyncStorage
 export const loadTransactionsFromStorage = async () => {
   try {
-    const jsonValue = await AsyncStorage.getItem('transactions');
+    const jsonValue = await AsyncStorage.getItem(sharedPrefrence.TXN);
     return jsonValue != null ? JSON.parse(jsonValue) : [];
   } catch (e) {
     console.error('Error loading transactions from AsyncStorage', e);
@@ -21,22 +25,85 @@ export const loadTransactionsFromStorage = async () => {
   }
 };
 
+export const loadTransactionsFromFirebase = async () => {
+  const transactions: Transaction[] = [];
+  const snapshot = await firestore().collection(firebaseCollection.TXN).get();
+  snapshot.forEach(doc => {
+    transactions.push({ id: doc.id, ...doc.data() });
+  });
+  return transactions;
+};
+
 // Save balance to AsyncStorage
+
+
+// Save balance to AsyncStorage and Firestore
 export const saveBalanceToStorage = async (balance: number) => {
   try {
+    // Save to AsyncStorage
     await AsyncStorage.setItem('balance', balance.toString());
+
+    // Save to Firebase Firestore
+    const balanceRef = ref(database, 'balance/user_balance');
+    await set(balanceRef, { balance });
+    console.log('Balance successfully saved');
   } catch (e) {
-    console.error('Error saving balance to AsyncStorage', e);
+    console.error('Error saving balance to AsyncStorage and Firebase', e);
   }
 };
 
 // Load balance from AsyncStorage
-export const loadBalanceFromStorage = async () => {
+export const loadBalanceFromStorage = async (updateBalance) => {
   try {
-    const balance = await AsyncStorage.getItem('balance');
-    return balance != null ? parseFloat(balance) : 0;
+    const balanceFromStorage = await AsyncStorage.getItem('balance');
+    if (balanceFromStorage != null) {
+      updateBalance(parseFloat(balanceFromStorage));
+      return; // Exit if we found a balance in storage
+    }
   } catch (e) {
     console.error('Error loading balance from AsyncStorage', e);
-    return 0;
   }
+
+  //If balance wasn't found in AsyncStorage, load from Firebase
+  loadBalanceFromFirebase(updateBalance);
 };
+
+export const loadTransactions = async () => {
+  // Step 1: Try to load from AsyncStorage
+  const cachedTransactions = await loadTransactionsFromStorage();
+  
+  // // Step 2: Check if transactions are found
+  if (cachedTransactions.length > 0) {
+    return cachedTransactions; // Return cached transactions
+  }
+
+  // Step 3: If not found, load from Firebase
+  const transactionsFromFirebase = await loadTransactionsFromFirebase();
+  console.log("TRANSASCTIONS FROM FB",transactionsFromFirebase )
+
+  // Step 4: Store the loaded transactions in AsyncStorage
+  await AsyncStorage.setItem(sharedPrefrence.TXN, JSON.stringify(transactionsFromFirebase));
+
+  return transactionsFromFirebase; // Return transactions loaded from Firebase
+};
+
+
+
+export const loadBalanceFromFirebase = (callback) => {
+  const db = getDatabase();
+  const balanceRef = ref(db, '/balance/user_balance'); // Adjust the path according to your database structure
+
+  onValue(balanceRef, (snapshot) => {
+    const balanceObj = snapshot.val();
+    // console.log(balance, "LLLLLL")
+    if (balanceObj !== null) {
+      callback(balanceObj.balance); // Call the provided callback with the balance
+    } else {
+      console.log('No balance found');
+      callback(0); // Return 0 if no balance found
+    }
+  }, {
+    onlyOnce: true // To read data only once instead of listening for updates
+  });
+};
+

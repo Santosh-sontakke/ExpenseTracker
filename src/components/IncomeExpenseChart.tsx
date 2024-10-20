@@ -3,14 +3,14 @@ import { View, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useSelector } from 'react-redux';
 import { Dimensions } from 'react-native';
-import { transactionType } from '../utils/types/types';
+import { transactionType } from '../constants/constant';
 
 const screenWidth = Dimensions.get('window').width;
 
 const IncomeExpenseChart = () => {
   const transactions = useSelector((state: any) => state.transactions.transactions);
 
-  // Calculate total income and total expenses
+  
   const income = useMemo(() => transactions
     .filter((transaction: any) => transaction.type === transactionType.INCOME)
     .reduce((total: number, transaction: any) => total + transaction.amount, 0), [transactions])
@@ -19,12 +19,11 @@ const IncomeExpenseChart = () => {
     .filter((transaction: any) => transaction.type === transactionType.EXPENSE)
     .reduce((total: number, transaction: any) => total + transaction.amount, 0), [transactions])
 
-  // Prepare data for the chart
   const data = {
     labels: ['Income', 'Expenses'],
     datasets: [
       {
-        data: [income, expenses], // Data for both income and expenses
+        data: [income, expenses],
       },
     ],
   };
@@ -33,16 +32,16 @@ const IncomeExpenseChart = () => {
     <View style={styles.container}>
       <BarChart
         data={data}
-        width={screenWidth - 20} // Adjust chart width
+        width={screenWidth - 20} // chart width
         height={500}
         yAxisLabel="₹"
         chartConfig={{
           backgroundColor: '#fff',
           backgroundGradientFrom: '#b8a18c',
           backgroundGradientTo: '#fff',
-          decimalPlaces: 2, // Optional, number of decimal places
-          color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // Color for the bar
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color
+          decimalPlaces: 2, 
+          color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, 
+          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, 
           style: {
             borderRadius: 16,
           },
@@ -51,11 +50,11 @@ const IncomeExpenseChart = () => {
             stroke: '#e3e3e3',
             strokeDasharray: '5 5', // Customize the background line style
           },
-          fillShadowGradient: `rgba(0, 128, 0, 1)`, // Green color for the fill of the bar
+          fillShadowGradient: `rgba(0, 128, 0, 1)`, 
           fillShadowGradientOpacity: 1,
-          barPercentage: 1, // Adjust bar width percentage
+          barPercentage: 1, 
         }}
-        fromZero={true} // Ensures the graph starts from 0
+        fromZero={true} 
         style={{
           marginVertical: 8,
           borderRadius: 16,

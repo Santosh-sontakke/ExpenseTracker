@@ -1,14 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch } from '../store';
+import store, { AppDispatch } from '../store';
 import { 
-  loadTransactionsFromStorage, 
   saveTransactionsToStorage, 
   loadBalanceFromStorage, 
-  saveBalanceToStorage 
+  saveBalanceToStorage, 
+  loadTransactions
 } from '../../utils/storageUtils';
-import { Transaction, transactionType } from '../../utils/types/types';
-
-// Define the initial state
+import { Transaction } from '../../utils/types/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { transactionType } from '../../constants/constant';
 
 
 interface TransactionState {
@@ -21,7 +21,6 @@ const initialState: TransactionState = {
   balance: 0,
 };
 
-// Create a Redux slice
 const transactionsSlice = createSlice({
   name: 'transactions',
   initialState,
@@ -34,7 +33,6 @@ const transactionsSlice = createSlice({
         state.balance -= action.payload.amount;
       }
 
-      // Persist data in AsyncStorage
       saveTransactionsToStorage(state.transactions);
       saveBalanceToStorage(state.balance);
     },
@@ -43,14 +41,13 @@ const transactionsSlice = createSlice({
       if (index !== -1) {
         const oldTransaction = state.transactions[index];
 
-        // Update balance based on the type
+        // Update balance based on the type like expense/ income
         if (oldTransaction.type === transactionType.INCOME) {
           state.balance -= oldTransaction.amount; // Remove old income
         } else {
           state.balance += oldTransaction.amount; // Remove old expense
         }
 
-        // Update the transaction
         state.transactions[index] = action.payload;
 
         // Adjust balance for new transaction
@@ -60,7 +57,7 @@ const transactionsSlice = createSlice({
           state.balance -= action.payload.amount;
         }
 
-        // Persist updated data in AsyncStorage
+        // put updated data in cache
         saveTransactionsToStorage(state.transactions);
         saveBalanceToStorage(state.balance);
       }
@@ -70,14 +67,14 @@ const transactionsSlice = createSlice({
       if (index !== -1) {
         const removedTransaction = state.transactions[index];
 
-        // Adjust balance based on the transaction type
+        // adjust balance based on the transaction type
         if (removedTransaction.type === transactionType.INCOME) {
           state.balance -= removedTransaction.amount;
         } else {
           state.balance += removedTransaction.amount;
         }
 
-        // Remove the transaction
+        // remove the transaction
         state.transactions.splice(index, 1);
 
         // Persist updated data in AsyncStorage
@@ -98,11 +95,16 @@ export const { addTransaction, editTransaction, deleteTransaction, setTransactio
 
 export default transactionsSlice.reducer;
 
-// Load data from AsyncStorage when app starts
+const updateBalance =async (balance: number)=>{
+  console.log('BALANCE',balance)
+  store.dispatch(setBalance(balance));
+  await AsyncStorage.setItem('balance', balance.toString());
+
+
+}
+// get data from AsyncStorage when app starts
 export const loadInitialData = () => async (dispatch: AppDispatch) => {
-  const transactions = await loadTransactionsFromStorage();
-  const balance = await loadBalanceFromStorage();
-  
+  const transactions = await loadTransactions();
+  await loadBalanceFromStorage(updateBalance);
   dispatch(setTransactions(transactions));
-  dispatch(setBalance(balance));
 };

@@ -5,13 +5,15 @@ import { useDispatch } from 'react-redux';
 import { v5 as uuidv5 } from 'uuid';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { addTransaction, editTransaction } from '../redux/slices/transactionSlice';
-import { MY_NAMESPACE } from '../constants/constant';
-import { DatePickerModal } from 'react-native-paper-dates';
+import { firebaseCollection, MY_NAMESPACE, transactionCategory, transactionType } from '../constants/constant';
+import { DatePickerModal, ro } from 'react-native-paper-dates';
 import { en, registerTranslation } from 'react-native-paper-dates';
-import { screenTitles } from '../utils/routes/route';
-import {Transaction, transactionCategory, transactionType } from '../utils/types/types';
+import { appRoutes, screenTitles } from '../utils/routes/route';
+import {Transaction } from '../utils/types/types';
+import firestore from '@react-native-firebase/firestore';
+import { updateTransactionById } from '../services/firebaseService';
 
-// Register English translations for the date picker
+//  English translations for the date picker
 registerTranslation('en', en);
 
 type TransactionScreenProps = {
@@ -96,7 +98,7 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
     ).start();
   }, [transaction]);
 
-  const handleSaveTransaction = () => {
+  const handleSaveTransaction = async () => {
     if (amount === '' || isNaN(Number(amount))) {
       setError(true);
       return;
@@ -110,7 +112,7 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
       setCategoryError(false);
     }
 
-    const transactionData = {
+    const transactionData: Transaction = {
       id: transaction ? transaction.id : uuidv5(new Date().getTime().toString(), MY_NAMESPACE),
       amount: parseFloat(amount),
       category: finalCategory,
@@ -118,18 +120,24 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
       type,
     };
 
+   try {
     if (transaction) {
+      updateTransactionById(transaction.id, transactionData)
       dispatch(editTransaction(transactionData as Transaction));
     } else {
+      await firestore().collection(firebaseCollection.TXN).add(transactionData);
       dispatch(addTransaction(transactionData as Transaction));
     }
+   } catch (error) {
+    console.log("RR", error)
+   }
 
     // Reset form and navigate back to HomeScreen
     setAmount('');
     setCategory(transactionCategory.GROCERIES);
     setNewCategory('');
     setError(false);
-    navigation.navigate('HomeScreen');
+    navigation.navigate(appRoutes.HOMESCREEN);
   };
 
   return (

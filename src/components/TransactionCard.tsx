@@ -1,17 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Card } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { deleteTransaction } from '../redux/slices/transactionSlice';
 import { SvgXml } from 'react-native-svg';
-import { DeleteIcon } from '../assets/icons/DeleteIcon';
-import { PencilIcon } from '../assets/icons/PencilIcon';
-import { IncomeIcon } from '../assets/icons/IncomeIcon';
-import { ExpenseIcon } from '../assets/icons/ExpenseIcon';
-import { Transaction, transactionType } from '../utils/types/types';
+import { Transaction } from '../utils/types/types';
 import { appRoutes } from '../utils/routes/route';
+import { deleteTransactionById } from '../services/firebaseService';
+import { ExpenseIcon, IncomeIcon, DeleteIcon, PencilIcon } from '../assets';
+import { transactionType } from '../constants/constant';
+
 
 interface TransactionCardProps {
   transaction: {
@@ -23,7 +22,7 @@ interface TransactionCardProps {
   };
 }
 
-const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }:{transaction: Transaction}) => {
+const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }: { transaction: Transaction }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
@@ -37,25 +36,32 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }:{transa
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => dispatch(deleteTransaction(transaction.id)),
-        },
+          onPress: onDelete
+        }
       ]
     );
   };
 
-  // Navigate to edit screen with transaction data
+  const onDelete = async () => {
+    try {
+      deleteTransactionById(transaction.id)
+      dispatch(deleteTransaction(transaction.id));
+    } catch (error) {
+      Alert.alert("Error deleting Transaction")
+    }
+  };
+
   const handleEdit = () => {
     navigation.navigate(appRoutes.ADD_EXPENSE_SCREEN, { transaction });
   };
   return (
     <Card style={styles.card} >
       <View style={styles.container}>
-        {/* Icon based on transaction type */}
         <View style={styles.iconContainer}>
           {transaction.type === transactionType.INCOME ? (
-          <SvgXml xml={IncomeIcon} width={28} />
-        ) : (
-          <SvgXml xml={ExpenseIcon} width={28} />
+            <SvgXml xml={IncomeIcon} width={28} />
+          ) : (
+            <SvgXml xml={ExpenseIcon} width={28} />
           )}
         </View>
 
@@ -70,14 +76,13 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }:{transa
           </Text>
         </View>
 
-        {/* Edit and Delete Icons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity onPress={handleEdit}>
-          <SvgXml xml={PencilIcon} width={28} />
+            <SvgXml xml={PencilIcon} width={28} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-          <SvgXml xml={DeleteIcon} width={28} />
+            <SvgXml xml={DeleteIcon} width={28} />
           </TouchableOpacity>
         </View>
       </View>
@@ -124,7 +129,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     marginLeft: 16,
-    alignItems:'center'
+    alignItems: 'center'
   },
   deleteButton: {
     marginLeft: 10,

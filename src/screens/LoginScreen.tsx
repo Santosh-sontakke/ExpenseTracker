@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import usersData from '../constants/users.json';
-import IncomeExpenseChart from '../components/IncomeExpenseChart';
+import { appRoutes } from '../utils/routes/route';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -11,16 +11,60 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      header: () => null
+    })
+  })
+  // Animated values
+  const opacity = useRef(new Animated.Value(0)).current; // Initial opacity value for fade-in
+  const translateY = useRef(new Animated.Value(30)).current; // Initial Y translation for sliding up
+  const buttonScale = useRef(new Animated.Value(1)).current; // Initial scale for button pulse effect
+
+  useEffect(() => {
+    // Fade in and slide up animation for the form elements
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(translateY, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    // Looping pulse animation for the login button
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonScale, {
+          toValue: 1.05,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonScale, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
   const handleLogin = () => {
+    navigation.navigate('HomeScreen');//
+
     const user = usersData.find(
       (user) => user.username === username && user.password === password
     );
 
     if (user) {
-      // Navigate to the home screen if authentication is successful
-      setUsername("")
-      setPassword("")
-      navigation.navigate('HomeScreen');
+      // Clear inputs and navigate to the home screen
+      setUsername('');
+      setPassword('');
+      navigation.navigate(appRoutes.HOMESCREEN);
     } else {
       setError(true);
     }
@@ -28,29 +72,37 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-        <IncomeExpenseChart/>
-      <Text style={styles.header}>Login</Text>
-
-      <TextInput
-        label="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-      />
-      <TextInput
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <HelperText type="error" visible={error}>
-        Invalid username or password.
-      </HelperText>
-      
-      <Button mode="contained" onPress={handleLogin} style={styles.button}>
+      {/* Header Animation */}
+      <Animated.Text style={[styles.header, { opacity, transform: [{ translateY }] }]}>
         Login
-      </Button>
+      </Animated.Text>
+
+      {/* Input fields with opacity and translation animation */}
+      <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+        <TextInput
+          label="Username"
+          value={username}
+          onChangeText={setUsername}
+          style={styles.input}
+        />
+        <TextInput
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+        />
+        <HelperText type="error" visible={error}>
+          Invalid username or password.
+        </HelperText>
+      </Animated.View>
+
+      {/* Login Button with pulse animation */}
+      <Animated.View style={[styles.buttonContainer, { transform: [{ scale: buttonScale }] }]}>
+        <Button mode="contained" onPress={handleLogin} style={styles.button}>
+          Login
+        </Button>
+      </Animated.View>
     </View>
   );
 };
@@ -71,8 +123,12 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 16,
   },
-  button: {
+  buttonContainer: {
     marginTop: 32,
+    alignItems: 'center',
+  },
+  button: {
+    width: '100%',
   },
 });
 

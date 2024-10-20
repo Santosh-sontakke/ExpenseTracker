@@ -23,9 +23,7 @@ const IncomeExpenseChart = () => {
     labels: ['Income', 'Expenses'],
     datasets: [
       {
-        data: [income, expenses],
-        color: (opacity = 1) => `rgba(0, 128, 0, ${opacity})`, // Color for the Income bar
-        strokeWidth: 2,
+        data: [income, expenses], // Data for both income and expenses
       },
     ],
   };
@@ -34,20 +32,29 @@ const IncomeExpenseChart = () => {
     <View style={styles.container}>
       <BarChart
         data={data}
-        width={screenWidth - 32} // Adjust chart width
-        height={220}
+        width={screenWidth - 20} // Adjust chart width
+        height={500}
         yAxisLabel="₹"
         chartConfig={{
           backgroundColor: '#fff',
-          backgroundGradientFrom: '#fff',
+          backgroundGradientFrom: '#b8a18c',
           backgroundGradientTo: '#fff',
-          decimalPlaces: 2, // Optional
-          color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // Bar color
+          decimalPlaces: 2, // Optional, number of decimal places
+          color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // Color for the bar
           labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color
           style: {
             borderRadius: 16,
           },
+          propsForBackgroundLines: {
+            strokeWidth: 1,
+            stroke: '#e3e3e3',
+            strokeDasharray: '5 5', // Customize the background line style
+          },
+          fillShadowGradient: `rgba(0, 128, 0, 1)`, // Green color for the fill of the bar
+          fillShadowGradientOpacity: 1,
+          barPercentage: 1, // Adjust bar width percentage
         }}
+        fromZero={true} // Ensures the graph starts from 0
         style={{
           marginVertical: 8,
           borderRadius: 16,

@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { View, StyleSheet, ScrollView, SafeAreaView, Animated } from 'react-native';
 import { TextInput, Button, RadioButton, HelperText, Text } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
 import { v5 as uuidv5 } from 'uuid';
 import { useNavigation, RouteProp } from '@react-navigation/native';
-import { MY_NAMESPACE } from '../constants/constant';
 import { addTransaction, editTransaction } from '../redux/slices/transactionSlice';
+import { MY_NAMESPACE } from '../constants/constant';
+import { DatePickerModal } from 'react-native-paper-dates';
+import { en, registerTranslation } from 'react-native-paper-dates';
+import { screenTitles } from '../utils/routes/route';
+
+// Register English translations for the date picker
+registerTranslation('en', en);
 
 type TransactionScreenProps = {
   route: RouteProp<{ params?: { transaction?: any } }, 'params'>;
@@ -22,13 +28,70 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [error, setError] = useState(false);
   const [categoryError, setCategoryError] = useState(false); // To handle category error
+  const [date, setDate] = useState<Date | undefined>(new Date()); // Date state
+  const [open, setOpen] = useState(false); // Date picker state
 
+  useLayoutEffect(()=>{
+    navigation.setOptions({
+      title:screenTitles.ADD_EXPENSE_SCREEN
+    }
+    )
+  })
+
+  // Animated values
+  const opacity = useRef(new Animated.Value(0)).current; // Initial opacity for fade-in
+  const translateY = useRef(new Animated.Value(30)).current; // Initial Y translation for slide-up
+  const buttonScale = useRef(new Animated.Value(1)).current; // Button scale for pulse effect
+  const parseDateString = (dateString: string) => {
+    const [day, month, year] = dateString.split('/').map(Number); // Split and convert to numbers
+    return new Date(year, month - 1, day); // Month is 0-based in JS Date
+  };
   useEffect(() => {
     if (transaction) {
       setAmount(transaction.amount.toString());
       setCategory(transaction.category);
       setType(transaction.type);
+      if (transaction.date) {
+        const parsedDate = parseDateString(transaction.date);
+        if (!isNaN(parsedDate.getTime())) {
+          setDate(parsedDate); // Set parsed date if valid
+        } else {
+          console.warn("Invalid date format, using current date");
+          setDate(new Date()); // Fallback to current date if parsing fails
+        }
+      }
+      // setDate(new Date(transaction.date)); // Initialize the date from the transaction
     }
+
+    // Animate the form appearance (fade-in + slide-up)
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Looping button pulse animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonScale, {
+          toValue: 1.05,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonScale, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, [transaction]);
 
   const handleSaveTransaction = () => {
@@ -37,7 +100,6 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
       return;
     }
 
-    // If new category is provided, set it as the category
     const finalCategory = newCategory ? newCategory : category;
     if (!finalCategory) {
       setCategoryError(true);
@@ -50,7 +112,7 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
       id: transaction ? transaction.id : uuidv5(new Date().getTime().toString(), MY_NAMESPACE),
       amount: parseFloat(amount),
       category: finalCategory,
-      date: transaction ? transaction.date : new Date().toISOString().split('T')[0],
+      date: date ? date.toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'), // Use local date format (dd/mm/yyyy)
       type,
     };
 
@@ -63,65 +125,93 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
     // Reset form and navigate back to HomeScreen
     setAmount('');
     setCategory('Groceries');
-    setNewCategory(''); // Reset new category input
+    setNewCategory('');
     setError(false);
     navigation.navigate('HomeScreen');
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>{transaction ? 'Edit Transaction' : 'Add New Transaction'}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <Animated.Text style={[styles.header, { opacity, transform: [{ translateY }] }]}>
+          {transaction ? 'Edit Transaction' : 'Add New Transaction'}
+        </Animated.Text>
 
-      {/* Amount input */}
-      <TextInput
-        label="Amount (₹)"
-        value={amount}
-        onChangeText={text => setAmount(text)}
-        keyboardType="numeric"
-        style={styles.input}
-        error={error}
-      />
-      <HelperText type="error" visible={error}>
-        Please enter a valid amount.
-      </HelperText>
+        {/* Animated amount input */}
+        <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+          <TextInput
+            label="Amount (₹)"
+            value={amount}
+            onChangeText={text => setAmount(text)}
+            keyboardType="numeric"
+            style={styles.input}
+            error={error}
+          />
+          <HelperText type="error" visible={error}>
+            Please enter a valid amount.
+          </HelperText>
+        </Animated.View>
 
-      {/* Category selector */}
-      <Text style={styles.label}>Select or Add Category</Text>
-      <RadioButton.Group onValueChange={value => setCategory(value)} value={category}>
-        <RadioButton.Item label="Groceries" value="Groceries" />
-        <RadioButton.Item label="Rent" value="Rent" />
-        <RadioButton.Item label="Entertainment" value="Entertainment" />
-        <RadioButton.Item label="Utilities" value="Utilities" />
-        <RadioButton.Item label="Others" value="Others" />
-        <RadioButton.Item label="Add New Category" value="new" />
-      </RadioButton.Group>
+        {/* Animated category selector */}
+        <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+          <Text style={styles.label}>Select or Add Category</Text>
+          <RadioButton.Group onValueChange={value => setCategory(value)} value={category}>
+            <RadioButton.Item label="Groceries" value="Groceries" />
+            <RadioButton.Item label="Rent" value="Rent" />
+            <RadioButton.Item label="Entertainment" value="Entertainment" />
+            <RadioButton.Item label="Utilities" value="Utilities" />
+            <RadioButton.Item label="Others" value="Others" />
+            <RadioButton.Item label="Add New Category" value="new" />
+          </RadioButton.Group>
 
-      {/* New Category Input */}
-      {category === 'new' && (
-        <TextInput
-          label="New Category"
-          value={newCategory}
-          onChangeText={text => setNewCategory(text)}
-          style={styles.input}
-          error={categoryError}
-        />
-      )}
-      <HelperText type="error" visible={categoryError}>
-        Please enter a valid category.
-      </HelperText>
+          {category === 'new' && (
+            <TextInput
+              label="New Category"
+              value={newCategory}
+              onChangeText={text => setNewCategory(text)}
+              style={styles.input}
+              error={categoryError}
+            />
+          )}
+          <HelperText type="error" visible={categoryError}>
+            Please enter a valid category.
+          </HelperText>
+        </Animated.View>
 
-      {/* Income/Expense selector */}
-      <Text style={styles.label}>Type</Text>
-      <RadioButton.Group onValueChange={value => setType(value as any)} value={type}>
-        <RadioButton.Item label="Expense" value="expense" />
-        <RadioButton.Item label="Income" value="income" />
-      </RadioButton.Group>
+        {/* Animated income/expense selector */}
+        <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+          <Text style={styles.label}>Type</Text>
+          <RadioButton.Group onValueChange={value => setType(value as any)} value={type}>
+            <RadioButton.Item label="Expense" value="expense" />
+            <RadioButton.Item label="Income" value="income" />
+          </RadioButton.Group>
+        </Animated.View>
 
-      {/* Save transaction button */}
-      <Button mode="contained" onPress={handleSaveTransaction} style={styles.button}>
-        {transaction ? 'Save Changes' : 'Add Transaction'}
-      </Button>
-    </ScrollView>
+        {/* Animated date picker button */}
+        <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+          <Button onPress={() => setOpen(true)} mode="outlined" style={{ marginTop: 16 }}>
+            {date ? date.toLocaleDateString('en-GB') : 'Select Date'}
+          </Button>
+          <DatePickerModal
+            mode="single"
+            visible={open}
+            onDismiss={() => setOpen(false)}
+            date={date}
+            onConfirm={(params) => {
+              setOpen(false);
+              setDate(params.date);
+            }}
+          />
+        </Animated.View>
+
+        {/* Animated save transaction button with pulse effect */}
+        <Animated.View style={[styles.buttonContainer, { transform: [{ scale: buttonScale }] }]}>
+          <Button mode="contained" onPress={handleSaveTransaction} style={styles.button}>
+            {transaction ? 'Save Changes' : 'Add Transaction'}
+          </Button>
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -145,8 +235,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 16,
   },
-  button: {
+  buttonContainer: {
     marginTop: 32,
+    alignItems: 'center',
+  },
+  button: {
+    width: '95%',
   },
 });
 

@@ -7,12 +7,13 @@ import AddExpense from './src/screens/AddExpenseScreen';
 import AddIncome from './src/screens/AddIncome';
 import { useDispatch } from 'react-redux';
 import { loadInitialData } from './src/redux/slices/transactionSlice';
-import EditTransactionScreen from './src/screens/EditTransactionScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import GraphScreen from './src/screens/GraphScreen';
+import { appRoutes } from './src/utils/routes/route';
 const Stack = createNativeStackNavigator();
 
 const StackWrapper = () => {
-      const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Load the initial data from AsyncStorage into Redux
@@ -20,15 +21,14 @@ const StackWrapper = () => {
   }, [dispatch]);
   return (
     <NavigationContainer>
-    <Stack.Navigator initialRouteName="Login">
-    <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      <Stack.Screen name="AddExpense" component={AddExpense} />
-      <Stack.Screen name="AddIncome" component={AddIncome} /> 
-      <Stack.Screen name="EditTransaction" component={EditTransactionScreen} />
-
-    </Stack.Navigator>
-  </NavigationContainer>
+      <Stack.Navigator initialRouteName={appRoutes.LOGIN_SCREEN}>
+        <Stack.Screen name={appRoutes.LOGIN_SCREEN} component={LoginScreen} />
+        <Stack.Screen name={appRoutes.HOMESCREEN} component={HomeScreen} />
+        <Stack.Screen name={appRoutes.ADD_EXPENSE_SCREEN} component={AddExpense} />
+        <Stack.Screen name={appRoutes.ADD_INCOME_SCREEN} component={AddIncome} />
+        <Stack.Screen name={appRoutes.GRAPH_SCREEN} component={GraphScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   )
 }
 

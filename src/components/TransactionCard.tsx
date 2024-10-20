@@ -5,6 +5,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { deleteTransaction } from '../redux/slices/transactionSlice';
+import { SvgXml } from 'react-native-svg';
+import { DeleteIcon } from '../assets/icons/DeleteIcon';
+import { PencilIcon } from '../assets/icons/PencilIcon';
+import { IncomeIcon } from '../assets/icons/IncomeIcon';
+import { ExpenseIcon } from '../assets/icons/ExpenseIcon';
 
 interface TransactionCardProps {
   transaction: {
@@ -40,16 +45,15 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   const handleEdit = () => {
     navigation.navigate('AddExpense', { transaction });
   };
-
   return (
-    <Card style={styles.card}>
+    <Card style={styles.card} >
       <View style={styles.container}>
         {/* Icon based on transaction type */}
         <View style={styles.iconContainer}>
           {transaction.type === 'income' ? (
-            <Icon name="cash-plus" size={30} color="green" />
-          ) : (
-            <Icon name="cash-minus" size={30} color="red" />
+          <SvgXml xml={IncomeIcon} width={28} />
+        ) : (
+          <SvgXml xml={ExpenseIcon} width={28} />
           )}
         </View>
 
@@ -67,11 +71,11 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
         {/* Edit and Delete Icons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity onPress={handleEdit}>
-            <Icon name="pencil" size={24} color="#007bff" />
+          <SvgXml xml={PencilIcon} width={28} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-            <Icon name="delete" size={24} color="red" />
+          <SvgXml xml={DeleteIcon} width={28} />
           </TouchableOpacity>
         </View>
       </View>
@@ -82,7 +86,6 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
 const styles = StyleSheet.create({
   card: {
     marginVertical: 8,
-    marginHorizontal: 16,
     padding: 16,
   },
   container: {
@@ -119,6 +122,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     marginLeft: 16,
+    alignItems:'center'
   },
   deleteButton: {
     marginLeft: 10,

@@ -1,11 +1,13 @@
-import React, { useLayoutEffect } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
+import { View, FlatList, StyleSheet, Animated, Modal } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Button, Card, Title, Paragraph, Text } from 'react-native-paper';
+import { Button, Text } from 'react-native-paper';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import { RootState } from '../store';
 import TransactionCard from '../components/TransactionCard';
+import { RootState } from '../redux/store';
+import IncomeExpenseChart from '../components/IncomeExpenseChart';
+import { appRoutes } from '../utils/routes/route';
 
 // Define the type for the navigation stack
 type RootStackParamList = {
@@ -21,15 +23,39 @@ const HomeScreen = () => {
   // Get data from Redux store
   const { transactions, balance } = useSelector((state: RootState) => state.transactions);
 
-  // Render each expense as a card
+  // Animation references
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Fade animation for the entire screen
+  const scaleAnim = useRef(new Animated.Value(1)).current; // Scale animation for the Add Expense button
+
+  // Fade-in effect when the screen loads
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  // Add button press animation
+  const handleAddExpensePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      navigation.navigate(appRoutes.ADD_EXPENSE_SCREEN);
+    });
+  };
+
+  // Render each transaction as an animated card
   const renderTransaction = ({ item }: any) => (
-    // <Card style={styles.card}>
-    //   <Card.Content>
-    //     <Title>{item.category}</Title>
-    //     <Paragraph>{item.type === 'income' ? `Income: ₹${item.amount}` : `Expense: ₹${item.amount}`}</Paragraph>
-    //     <Paragraph>Date: {item.date}</Paragraph>
-    //   </Card.Content>
-    // </Card>
     <TransactionCard transaction={item} />
   );
 
@@ -37,18 +63,30 @@ const HomeScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button
-          onPress={() => navigation.navigate('AddIncome')}
-          mode="text"
-          style={styles.headerButton}
-        >
-          Add Income
-        </Button>
+        <View style={{ flexDirection: 'row' }}>
+          <Button
+            onPress={() => navigation.navigate(appRoutes.GRAPH_SCREEN)}
+            mode="text"
+            style={styles.headerButton}
+          >
+            Graph
+          </Button>
+          <Button
+            onPress={() => navigation.navigate(appRoutes.ADD_INCOME_SCREEN)}
+            mode="text"
+            style={styles.headerButton}
+          >
+            Add Income
+          </Button>
+        </View>
       ),
+      title: ""
+
     });
   }, [navigation]);
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <Text style={styles.balanceText}>Balance: ₹{balance}</Text>
 
       {/* Transaction list */}
@@ -59,15 +97,17 @@ const HomeScreen = () => {
         ListEmptyComponent={<Text style={styles.noTransactionText}>No transactions added yet</Text>}
       />
 
-      {/* Add new expense button at the bottom */}
-      <Button
-        mode="contained"
-        style={styles.addExpenseButton}
-        onPress={() => navigation.navigate('AddExpense')}
-      >
-        Add New Expense
-      </Button>
-    </View>
+      {/* Animated Add Expense Button */}
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Button
+          mode="contained"
+          style={styles.addExpenseButton}
+          onPress={handleAddExpensePress}
+        >
+          Add New Expense
+        </Button>
+      </Animated.View>
+    </Animated.View>
   );
 };
 
@@ -82,9 +122,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center',
-  },
-  card: {
-    marginBottom: 12,
   },
   noTransactionText: {
     textAlign: 'center',

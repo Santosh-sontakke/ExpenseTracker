@@ -92,6 +92,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('Demo.jks')
+            storePassword 'Santosh@123'
+            keyAlias 'Demo' // Ensure this matches the alias used during key creation
+            keyPassword 'Santosh@123'
+        }
     }
     buildTypes {
         debug {
@@ -100,9 +106,20 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' // Adjust this based on your target
+            universalApk false
+            // If true, this will also generate a universal APK in addition to split APKs
         }
     }
 }

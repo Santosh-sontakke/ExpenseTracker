@@ -9,6 +9,7 @@ import { MY_NAMESPACE } from '../constants/constant';
 import { DatePickerModal } from 'react-native-paper-dates';
 import { en, registerTranslation } from 'react-native-paper-dates';
 import { screenTitles } from '../utils/routes/route';
+import {Transaction, transactionCategory, transactionType } from '../utils/types/types';
 
 // Register English translations for the date picker
 registerTranslation('en', en);
@@ -20,12 +21,12 @@ type TransactionScreenProps = {
 const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const transaction = route.params?.transaction;
+  const transaction:Transaction = route.params?.transaction;
 
   const [amount, setAmount] = useState<string>('');
-  const [category, setCategory] = useState<string>('Groceries');
+  const [category, setCategory] = useState<string>(transactionCategory.GROCERIES);
   const [newCategory, setNewCategory] = useState<string>(''); // For new category input
-  const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [type, setType] = useState<string>(transactionType.EXPENSE);
   const [error, setError] = useState(false);
   const [categoryError, setCategoryError] = useState(false); // To handle category error
   const [date, setDate] = useState<Date | undefined>(new Date()); // Date state
@@ -56,8 +57,9 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
         if (!isNaN(parsedDate.getTime())) {
           setDate(parsedDate); // Set parsed date if valid
         } else {
-          console.warn("Invalid date format, using current date");
-          setDate(new Date()); // Fallback to current date if parsing fails
+          setDate(new Date());
+          throw Error("Invalid date format, using current date");
+           // Fallback to current date if parsing fails
         }
       }
       // setDate(new Date(transaction.date)); // Initialize the date from the transaction
@@ -117,14 +119,14 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
     };
 
     if (transaction) {
-      dispatch(editTransaction(transactionData));
+      dispatch(editTransaction(transactionData as Transaction));
     } else {
-      dispatch(addTransaction(transactionData));
+      dispatch(addTransaction(transactionData as Transaction));
     }
 
     // Reset form and navigate back to HomeScreen
     setAmount('');
-    setCategory('Groceries');
+    setCategory(transactionCategory.GROCERIES);
     setNewCategory('');
     setError(false);
     navigation.navigate('HomeScreen');
@@ -156,12 +158,12 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
         <Animated.View style={{ opacity, transform: [{ translateY }] }}>
           <Text style={styles.label}>Select or Add Category</Text>
           <RadioButton.Group onValueChange={value => setCategory(value)} value={category}>
-            <RadioButton.Item label="Groceries" value="Groceries" />
-            <RadioButton.Item label="Rent" value="Rent" />
-            <RadioButton.Item label="Entertainment" value="Entertainment" />
-            <RadioButton.Item label="Utilities" value="Utilities" />
-            <RadioButton.Item label="Others" value="Others" />
-            <RadioButton.Item label="Add New Category" value="new" />
+            <RadioButton.Item label={transactionCategory.GROCERIES} value={transactionCategory.GROCERIES} />
+            <RadioButton.Item label={transactionCategory.RENT} value={transactionCategory.RENT}/>
+            <RadioButton.Item label={transactionCategory.ENTERTAINMENT} value={transactionCategory.ENTERTAINMENT} />
+            <RadioButton.Item label={transactionCategory.UTILITIES} value={transactionCategory.UTILITIES} />
+            <RadioButton.Item label={transactionCategory.OTHERS} value={transactionCategory.OTHERS} />
+            <RadioButton.Item label={transactionCategory.ADD_CATEGORY} value="new" />
           </RadioButton.Group>
 
           {category === 'new' && (
@@ -169,7 +171,6 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
               label="New Category"
               value={newCategory}
               onChangeText={text => setNewCategory(text)}
-              style={styles.input}
               error={categoryError}
             />
           )}
@@ -226,14 +227,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center',
-  },
-  input: {
-    marginBottom: 16,
+    color:'black'
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    marginTop: 16,
+    fontWeight: 'bold',
   },
   buttonContainer: {
     marginTop: 32,

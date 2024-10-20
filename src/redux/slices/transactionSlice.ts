@@ -6,15 +6,10 @@ import {
   loadBalanceFromStorage, 
   saveBalanceToStorage 
 } from '../../utils/storageUtils';
+import { Transaction, transactionType } from '../../utils/types/types';
 
 // Define the initial state
-interface Transaction {
-  id: string;
-  category: string;
-  amount: number;
-  date: string;
-  type: 'income' | 'expense';
-}
+
 
 interface TransactionState {
   transactions: Transaction[];
@@ -33,7 +28,7 @@ const transactionsSlice = createSlice({
   reducers: {
     addTransaction: (state, action: PayloadAction<Transaction>) => {
       state.transactions.push(action.payload);
-      if (action.payload.type === 'income') {
+      if (action.payload.type === transactionType.INCOME) {
         state.balance += action.payload.amount;
       } else {
         state.balance -= action.payload.amount;
@@ -49,7 +44,7 @@ const transactionsSlice = createSlice({
         const oldTransaction = state.transactions[index];
 
         // Update balance based on the type
-        if (oldTransaction.type === 'income') {
+        if (oldTransaction.type === transactionType.INCOME) {
           state.balance -= oldTransaction.amount; // Remove old income
         } else {
           state.balance += oldTransaction.amount; // Remove old expense
@@ -59,7 +54,7 @@ const transactionsSlice = createSlice({
         state.transactions[index] = action.payload;
 
         // Adjust balance for new transaction
-        if (action.payload.type === 'income') {
+        if (action.payload.type === transactionType.INCOME) {
           state.balance += action.payload.amount;
         } else {
           state.balance -= action.payload.amount;
@@ -76,7 +71,7 @@ const transactionsSlice = createSlice({
         const removedTransaction = state.transactions[index];
 
         // Adjust balance based on the transaction type
-        if (removedTransaction.type === 'income') {
+        if (removedTransaction.type === transactionType.INCOME) {
           state.balance -= removedTransaction.amount;
         } else {
           state.balance += removedTransaction.amount;

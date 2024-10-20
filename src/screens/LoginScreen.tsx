@@ -4,6 +4,7 @@ import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import usersData from '../constants/users.json';
 import { appRoutes } from '../utils/routes/route';
+import { UserDataType } from '../utils/types/types';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -56,7 +57,7 @@ const LoginScreen = () => {
   const handleLogin = () => {
     navigation.navigate('HomeScreen');//
 
-    const user = usersData.find(
+    const user:UserDataType | undefined = usersData.find(
       (user) => user.username === username && user.password === password
     );
 

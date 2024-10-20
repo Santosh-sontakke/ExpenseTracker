@@ -10,6 +10,8 @@ import { DeleteIcon } from '../assets/icons/DeleteIcon';
 import { PencilIcon } from '../assets/icons/PencilIcon';
 import { IncomeIcon } from '../assets/icons/IncomeIcon';
 import { ExpenseIcon } from '../assets/icons/ExpenseIcon';
+import { Transaction, transactionType } from '../utils/types/types';
+import { appRoutes } from '../utils/routes/route';
 
 interface TransactionCardProps {
   transaction: {
@@ -21,7 +23,7 @@ interface TransactionCardProps {
   };
 }
 
-const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
+const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }:{transaction: Transaction}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
@@ -43,14 +45,14 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
 
   // Navigate to edit screen with transaction data
   const handleEdit = () => {
-    navigation.navigate('AddExpense', { transaction });
+    navigation.navigate(appRoutes.ADD_EXPENSE_SCREEN, { transaction });
   };
   return (
     <Card style={styles.card} >
       <View style={styles.container}>
         {/* Icon based on transaction type */}
         <View style={styles.iconContainer}>
-          {transaction.type === 'income' ? (
+          {transaction.type === transactionType.INCOME ? (
           <SvgXml xml={IncomeIcon} width={28} />
         ) : (
           <SvgXml xml={ExpenseIcon} width={28} />
@@ -63,7 +65,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
         </View>
 
         <View style={styles.amountContainer}>
-          <Text style={[styles.amount, transaction.type === 'income' ? styles.income : styles.expense]}>
+          <Text style={[styles.amount, transaction.type === transactionType.INCOME ? styles.income : styles.expense]}>
             ₹{transaction.amount}
           </Text>
         </View>

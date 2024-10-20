@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useSelector } from 'react-redux';
 import { Dimensions } from 'react-native';
+import { transactionType } from '../utils/types/types';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -10,13 +11,13 @@ const IncomeExpenseChart = () => {
   const transactions = useSelector((state: any) => state.transactions.transactions);
 
   // Calculate total income and total expenses
-  const income = transactions
-    .filter((transaction: any) => transaction.type === 'income')
-    .reduce((total: number, transaction: any) => total + transaction.amount, 0);
+  const income = useMemo(() => transactions
+    .filter((transaction: any) => transaction.type === transactionType.INCOME)
+    .reduce((total: number, transaction: any) => total + transaction.amount, 0), [transactions])
 
-  const expenses = transactions
-    .filter((transaction: any) => transaction.type === 'expense')
-    .reduce((total: number, transaction: any) => total + transaction.amount, 0);
+  const expenses = useMemo(() => transactions
+    .filter((transaction: any) => transaction.type === transactionType.EXPENSE)
+    .reduce((total: number, transaction: any) => total + transaction.amount, 0), [transactions])
 
   // Prepare data for the chart
   const data = {

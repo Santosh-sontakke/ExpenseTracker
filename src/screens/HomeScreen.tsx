@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { View, FlatList, StyleSheet, Animated, Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Button, Text } from 'react-native-paper';
@@ -6,8 +6,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import TransactionCard from '../components/TransactionCard';
 import { RootState } from '../redux/store';
-import IncomeExpenseChart from '../components/IncomeExpenseChart';
 import { appRoutes } from '../utils/routes/route';
+import { Transaction, transactionType } from '../utils/types/types';
 
 // Define the type for the navigation stack
 type RootStackParamList = {
@@ -23,6 +23,9 @@ const HomeScreen = () => {
   // Get data from Redux store
   const { transactions, balance } = useSelector((state: RootState) => state.transactions);
 
+  // State to manage filter type
+  const [filterType, setFilterType] = useState<string>('all');
+
   // Animation references
   const fadeAnim = useRef(new Animated.Value(0)).current; // Fade animation for the entire screen
   const scaleAnim = useRef(new Animated.Value(1)).current; // Scale animation for the Add Expense button
@@ -37,7 +40,7 @@ const HomeScreen = () => {
   }, []);
 
   // Add button press animation
-  const handleAddExpensePress = () => {
+  const handleAddExpensePress = useCallback(() => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 1.1,
@@ -52,10 +55,10 @@ const HomeScreen = () => {
     ]).start(() => {
       navigation.navigate(appRoutes.ADD_EXPENSE_SCREEN);
     });
-  };
+  }, []);
 
   // Render each transaction as an animated card
-  const renderTransaction = ({ item }: any) => (
+  const renderTransaction = ({ item }: { item: Transaction }) => (
     <TransactionCard transaction={item} />
   );
 
@@ -81,17 +84,47 @@ const HomeScreen = () => {
         </View>
       ),
       title: ""
-
     });
   }, [navigation]);
+
+  // Filter transactions based on the selected type
+  const filteredTransactions: Transaction[] = useMemo(() => transactions.filter(transaction => {
+    if (filterType === 'all') return true; // Show all transactions
+    return transaction.type === filterType; // Show only filtered type
+  }), [filterType, transactions])
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <Text style={styles.balanceText}>Balance: ₹{balance}</Text>
 
+      {/* Filter Button */}
+      <View style={styles.filterContainer}>
+        <Button
+          mode={filterType === 'all' ? 'contained' : 'text'}
+          onPress={() => setFilterType('all')}
+          style={styles.filterButton}
+        >
+          All
+        </Button>
+        <Button
+          mode={filterType === transactionType.INCOME ? 'contained' : 'text'}
+          onPress={() => setFilterType(transactionType.INCOME)}
+          style={styles.filterButton}
+        >
+          Income
+        </Button>
+        <Button
+          mode={filterType === transactionType.EXPENSE ? 'contained' : 'text'}
+          onPress={() => setFilterType(transactionType.EXPENSE)}
+          style={styles.filterButton}
+        >
+          Expense
+        </Button>
+      </View>
+
       {/* Transaction list */}
       <FlatList
-        data={transactions}
+        data={filteredTransactions}
         keyExtractor={(item) => item.id}
         renderItem={renderTransaction}
         ListEmptyComponent={<Text style={styles.noTransactionText}>No transactions added yet</Text>}
@@ -122,6 +155,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  filterButton: {
+    flex: 1,
+    marginHorizontal: 5,
   },
   noTransactionText: {
     textAlign: 'center',

@@ -1,13 +1,19 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useLayoutEffect } from 'react'
 import IncomeExpenseChart from '../components/IncomeExpenseChart'
 import { Button, Text } from 'react-native-paper';
+import { screenTitles } from '../utils/routes/route';
 
 const GraphScreen = ({ navigation, route }) => {
-    const [showGraph, setShowGraph] = useState<boolean>(false);
 
+    useLayoutEffect(()=>{
+        navigation.setOptions({
+            title:screenTitles.GRAPH_SCREEN
+        })
+    })
     return (
-        <View style={styles.container}><IncomeExpenseChart />
+        <View style={styles.container}>
+            <IncomeExpenseChart />
             <Text style={styles.header}>Income vs Expense</Text>
             <Button mode="contained" onPress={navigation.goBack} style={styles.button}>
                 Go Back

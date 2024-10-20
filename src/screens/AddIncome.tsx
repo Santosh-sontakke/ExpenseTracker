@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, useWindowDimensions, KeyboardAvoidingView } from 'react-native';
+import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { TextInput, Button, RadioButton, HelperText, Text } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
 import { v5 as uuidv5 } from 'uuid';
@@ -7,13 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import { addTransaction } from '../redux/slices/transactionSlice';
 import { MY_NAMESPACE } from '../constants/constant';
 import { DatePickerModal } from 'react-native-paper-dates';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { screenTitles } from '../utils/routes/route';
+import { appRoutes } from '../utils/routes/route';
 
-// Type for navigation
-type AddIncomeScreenProp = {
-  navigate: (screen: string) => void;
-};
 
 const AddIncome = () => {
   const [amount, setAmount] = useState('');
@@ -51,12 +46,12 @@ const AddIncome = () => {
     setAmount('');
     setCategory('Salary');
     setError(false);
-    navigation.navigate('HomeScreen');
+    navigation.navigate(appRoutes.HOMESCREEN);
   };
 
   return (
     <ScrollView>
-      <KeyboardAvoidingView style={[styles.container,{height:height}]}>
+      <View style={[styles.container,{height:height}]}>
         <Text style={styles.header}>Add New Income</Text>
 
         {/* Amount input */}
@@ -105,7 +100,7 @@ const AddIncome = () => {
         <Button mode="contained" onPress={handleAddIncome} style={styles.button}>
           Add Income
         </Button>
-      </KeyboardAvoidingView>
+      </View>
     </ScrollView>
   );
 };

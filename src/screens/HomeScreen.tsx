@@ -10,7 +10,6 @@ import { appRoutes } from '../utils/routes/route';
 import { Transaction } from '../utils/types/types';
 import { transactionType } from '../constants/constant';
 
-// Define the type for the navigation stack
 type RootStackParamList = {
   AddExpense: undefined;
   AddIncome: undefined;
@@ -21,17 +20,15 @@ type HomeScreenProp = StackNavigationProp<RootStackParamList, 'AddExpense'>;
 const HomeScreen = () => {
   const navigation = useNavigation<HomeScreenProp>();
 
-  // Get data from Redux store
   const { transactions, balance } = useSelector((state: RootState) => state.transactions);
 
   // State to manage filter type
   const [filterType, setFilterType] = useState<string>('all');
 
   // Animation references
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Fade animation for the entire screen
-  const scaleAnim = useRef(new Animated.Value(1)).current; // Scale animation for the Add Expense button
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Fade animation for whole sceren.
+  const scaleAnim = useRef(new Animated.Value(1)).current; // Scale 
 
-  // Fade-in effect when the screen loads
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -40,7 +37,6 @@ const HomeScreen = () => {
     }).start();
   }, []);
 
-  // Add button press animation
   const handleAddExpensePress = useCallback(() => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -58,12 +54,10 @@ const HomeScreen = () => {
     });
   }, []);
 
-  // Render each transaction as an animated card
   const renderTransaction = ({ item }: { item: Transaction }) => (
     <TransactionCard transaction={item} />
   );
 
-  // Use useLayoutEffect to customize the header
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -98,7 +92,6 @@ const HomeScreen = () => {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <Text style={styles.balanceText}>Balance: ₹{balance}</Text>
 
-      {/* Filter Button */}
       <View style={styles.filterContainer}>
         <Button
           mode={filterType === 'all' ? 'contained' : 'text'}
@@ -123,7 +116,6 @@ const HomeScreen = () => {
         </Button>
       </View>
 
-      {/* Transaction list */}
       <FlatList
         data={filteredTransactions}
         keyExtractor={(item) => item.id}
@@ -131,7 +123,6 @@ const HomeScreen = () => {
         ListEmptyComponent={<Text style={styles.noTransactionText}>No transactions added yet</Text>}
       />
 
-      {/* Animated Add Expense Button */}
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Button
           mode="contained"

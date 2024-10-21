@@ -1,79 +1,90 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-# Getting Started
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+                    Expense Tracker App
+Overview
+  The Expense Tracker App is a expense/income management tool developed using React Native, Redux, and Firebase. It allows users to track their income and expenses, categorize transactions, and can maintain and updated balance. The application having a user-friendly interface.
 
-## Step 1: Start the Metro Server
+  NOTE 
+  kindly use below username and password to login the app
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+  username      passworsd
+1 abc           123
+2 def            456
 
-To start Metro, run the following command from the _root_ of your React Native project:
+Process To Genrate apk file
 
-```bash
-# using npm
-npm start
+1> Open android studio -> Build -> generate signed apk 
+2> choose keystore path of Demo.jks android-> app-> Demo.jks
+3> enter alias as Demo
+4> password is Santosh@123
+click on build apk will be genrated at cd android/app/build/outputs/apk/release
 
-# OR using Yarn
-yarn start
-```
 
-## Step 2: Start your Application
+Table of Contents
+Features
+Technologies Used
+Setup Instructions
+Using Redux
+Using Material UI
+Notes
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
 
-### For Android
+           Features
+1: Add, edit, and delete income and expense transactions.
+2: categorize transactions into given categories or  you cancreate new custom categories as per requirnment.
+3: app display the total balance based on transactions ie final balance user having if the expense is more      than   income balance will be negative.
+4: Store transactions and balance data in Firebase Firestore.
+5: Also using local storage (AsyncStorage) for caching data.
+6: For new user if cache is empty then  data will be collected from firebase and then stored in asyncstorage.
+also for each transactions both firebase DB and local storage is getting updated.
+7: data visualisation added in the form of Bar chart Expense/income
+8: reading data from json to authenticate user using username and password
 
-```bash
-# using npm
-npm run android
 
-# OR using Yarn
-yarn android
-```
+.
+           Technologies Used
+React Native: Framework for building native mobile applications.
+Redux: for Managing the state of app.
+Firebase: to store data of CRUD operation .
+react-native-paper : To use predefined component like card/Buttons/Textiunput/ RadioButtons etc.
+React Navigation: Navigation library for routing in React Native apps.
 
-### For iOS
+Setup Instructions
+Clone the Repository:
 
-```bash
-# using npm
-npm run ios
+bash
+Copy code
+git clone https://github.com/yourusername/expense-tracker-app.git
+cd expense-tracker-app
 
-# OR using Yarn
-yarn ios
-```
+bash
+Copy code
+npm install
+Set Up Firebase:
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+Create a Firebase project in the Firebase Console.
+Add a new web app to your Firebase project and copy the Firebase configuration.
+Update the firebaseConfig in your project with your Firebase credentials.
+Run the App: For iOS:
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+bash
+Copy code
+npx react-native run-ios
+For Android:
 
-## Step 3: Modifying your App
+bash
+Copy code
+npx react-native run-android
+Using Redux
+The app uses Redux for state management, allowing you to manage transactions and balance in a centralized store.
+The application listens for state changes and updates the UI accordingly.
+Key Redux Actions
+addTransaction(transaction): Adds a new transaction to the state and updates Firebase.
+editTransaction(transaction): Updates an existing transaction in the state and Firebase.
+deleteTransaction(transactionId): Removes a transaction from the state and Firebase.
+Components such as TextInput, Button, and RadioButton are used for creating interactive forms and controls.
+TextInput: For inputting transaction amounts and categories.
+Button: For submitting forms to add or edit transactions.
+DatePickerModal: For selecting transaction dates.
 
-Now that you have successfully run the app, let's modify it.
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.

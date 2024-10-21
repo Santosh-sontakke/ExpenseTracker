@@ -55,8 +55,6 @@ const LoginScreen = () => {
   }, []);
 
   const handleLogin = () => {
-    navigation.navigate('HomeScreen');//
-
     const user:UserDataType | undefined = usersData.find(
       (user) => user.username === username && user.password === password
     );

@@ -96,7 +96,6 @@ export const { addTransaction, editTransaction, deleteTransaction, setTransactio
 export default transactionsSlice.reducer;
 
 const updateBalance =async (balance: number)=>{
-  console.log('BALANCE',balance)
   store.dispatch(setBalance(balance));
   await AsyncStorage.setItem('balance', balance.toString());
 

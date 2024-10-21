@@ -27,11 +27,11 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
 
   const [amount, setAmount] = useState<string>('');
   const [category, setCategory] = useState<string>(transactionCategory.GROCERIES);
-  const [newCategory, setNewCategory] = useState<string>(''); // For new category input
+  const [newCategory, setNewCategory] = useState<string>(''); // For new category
   const [type, setType] = useState<string>(transactionType.EXPENSE);
   const [error, setError] = useState(false);
   const [categoryError, setCategoryError] = useState(false); // To handle category error
-  const [date, setDate] = useState<Date | undefined>(new Date()); // Date state
+  const [date, setDate] = useState<Date | undefined>(new Date()); // Date
   const [open, setOpen] = useState(false); // Date picker state
 
   useLayoutEffect(()=>{
@@ -41,13 +41,12 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
     )
   })
 
-  // Animated values
-  const opacity = useRef(new Animated.Value(0)).current; // Initial opacity for fade-in
-  const translateY = useRef(new Animated.Value(30)).current; // Initial Y translation for slide-up
-  const buttonScale = useRef(new Animated.Value(1)).current; // Button scale for pulse effect
+  const opacity = useRef(new Animated.Value(0)).current; // opacity for fade-in
+  const translateY = useRef(new Animated.Value(30)).current; //  Y translation for slide-up
+  const buttonScale = useRef(new Animated.Value(1)).current; // button scale for pulse effect
   const parseDateString = (dateString: string) => {
     const [day, month, year] = dateString.split('/').map(Number); // Split and convert to numbers
-    return new Date(year, month - 1, day); // Month is 0-based in JS Date
+    return new Date(year, month - 1, day); // 0-based imonth in JS Date
   };
   useEffect(() => {
     if (transaction) {
@@ -61,13 +60,11 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
         } else {
           setDate(new Date());
           throw Error("Invalid date format, using current date");
-           // Fallback to current date if parsing fails
+          
         }
       }
-      // setDate(new Date(transaction.date)); // Initialize the date from the transaction
     }
 
-    // Animate the form appearance (fade-in + slide-up)
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
@@ -81,7 +78,7 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
       }),
     ]).start();
 
-    // Looping button pulse animation
+    // Looping button animatiion
     Animated.loop(
       Animated.sequence([
         Animated.timing(buttonScale, {
@@ -129,10 +126,9 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
       dispatch(addTransaction(transactionData as Transaction));
     }
    } catch (error) {
-    console.log("RR", error)
    }
 
-    // Reset form and navigate back to HomeScreen
+    // Reset and navigate back to HomeScreen
     setAmount('');
     setCategory(transactionCategory.GROCERIES);
     setNewCategory('');
@@ -213,7 +209,6 @@ const AddExpense: React.FC<TransactionScreenProps> = ({ route }) => {
           />
         </Animated.View>
 
-        {/* Animated save transaction button with pulse effect */}
         <Animated.View style={[styles.buttonContainer, { transform: [{ scale: buttonScale }] }]}>
           <Button mode="contained" onPress={handleSaveTransaction} style={styles.button}>
             {transaction ? 'Save Changes' : 'Add Transaction'}

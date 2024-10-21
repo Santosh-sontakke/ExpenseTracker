@@ -17,7 +17,7 @@ const AddIncome = () => {
   const [category, setCategory] = useState('Salary');
   const [error, setError] = useState(false);
   const [date, setDate] = useState(new Date()); // State for selected date
-  const [showDatePicker, setShowDatePicker] = useState(false); // Control date picker visibility
+  const [showDatePicker, setShowDatePicker] = useState(false); //date picker visibility
   const {height} = useWindowDimensions()
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -44,10 +44,8 @@ const AddIncome = () => {
     }
     await firestore().collection(firebaseCollection.TXN).add(transactionData);
 
-    // Dispatch the addTransaction action with the new income details
     dispatch(addTransaction(transactionData));
 
-    // Reset form and navigate back to HomeScreen
     setAmount('');
     setCategory('Salary');
     setError(false);
@@ -72,7 +70,6 @@ const AddIncome = () => {
           Please enter a valid amount.
         </HelperText>
 
-        {/* Category selector */}
         <Text style={styles.label}>Category</Text>
         <RadioButton.Group onValueChange={value => setCategory(value)} value={category}>
           <RadioButton.Item label="Salary" value="Salary" />
@@ -96,12 +93,11 @@ const AddIncome = () => {
             setShowDatePicker(false);
             setDate(params.date);
           }}
-          saveLabel="Save" // Optional
-          label="Select date" // Optional
-          animationType="fade" // Optional
+          saveLabel="Save" 
+          label="Select date" 
+          animationType="fade"
         />
 
-        {/* Add income button */}
         <Button mode="contained" onPress={handleAddIncome} style={styles.button}>
           Add Income
         </Button>

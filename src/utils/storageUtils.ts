@@ -34,19 +34,17 @@ export const loadTransactionsFromFirebase = async () => {
   return transactions;
 };
 
-// Save balance to AsyncStorage
 
 
-// Save balance to AsyncStorage and Firestore
+// Save balance to cache and Firestore
 export const saveBalanceToStorage = async (balance: number) => {
   try {
-    // Save to AsyncStorage
+    // Save to cache
     await AsyncStorage.setItem('balance', balance.toString());
 
     // Save to Firebase Firestore
     const balanceRef = ref(database, 'balance/user_balance');
     await set(balanceRef, { balance });
-    console.log('Balance successfully saved');
   } catch (e) {
     console.error('Error saving balance to AsyncStorage and Firebase', e);
   }
@@ -69,22 +67,21 @@ export const loadBalanceFromStorage = async (updateBalance) => {
 };
 
 export const loadTransactions = async () => {
-  // Step 1: Try to load from AsyncStorage
+  // load from AsyncStorage
   const cachedTransactions = await loadTransactionsFromStorage();
   
-  // // Step 2: Check if transactions are found
+  // Check if transactions are found
   if (cachedTransactions.length > 0) {
     return cachedTransactions; // Return cached transactions
   }
 
-  // Step 3: If not found, load from Firebase
+  // not found, load from Firebase
   const transactionsFromFirebase = await loadTransactionsFromFirebase();
-  console.log("TRANSASCTIONS FROM FB",transactionsFromFirebase )
 
-  // Step 4: Store the loaded transactions in AsyncStorage
+  // loaded transactions in AsyncStorage
   await AsyncStorage.setItem(sharedPrefrence.TXN, JSON.stringify(transactionsFromFirebase));
 
-  return transactionsFromFirebase; // Return transactions loaded from Firebase
+  return transactionsFromFirebase; 
 };
 
 
@@ -95,15 +92,13 @@ export const loadBalanceFromFirebase = (callback) => {
 
   onValue(balanceRef, (snapshot) => {
     const balanceObj = snapshot.val();
-    // console.log(balance, "LLLLLL")
     if (balanceObj !== null) {
       callback(balanceObj.balance); // Call the provided callback with the balance
     } else {
-      console.log('No balance found');
       callback(0); // Return 0 if no balance found
     }
   }, {
-    onlyOnce: true // To read data only once instead of listening for updates
+    onlyOnce: true // To read data only once instead
   });
 };
 
